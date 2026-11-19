@@ -73,10 +73,10 @@ impl Default for Fixture {
             topic: Topic("subjectOwner".into()),
             model: Model::Sol,
         };
-        let speaker = Address {
+        let communicator = Address {
             aspect: Aspect::Psyche,
             topic: Topic("core".into()),
-            model: Model::Opus,
+            model: Model::Fable,
         };
         Self {
             opener,
@@ -94,7 +94,7 @@ impl Default for Fixture {
                             crypto_store_path_option: Some(CryptoStorePath(
                                 "/fixture/crypto".into(),
                             )),
-                            address_option: Some(speaker),
+                            address_option: Some(communicator),
                             flow_client_path_option: Some(FlowClientPath("/fixture/flow".into())),
                         },
                     },
@@ -167,7 +167,7 @@ async fn thread_heard_uses_owner_subject_and_verbatim_text() {
 }
 
 #[tokio::test]
-async fn room_level_heard_uses_configured_speaker() {
+async fn room_level_heard_uses_configured_communicator() {
     let mut fixture = Fixture::default();
     let configuration = fixture.messenger.memory.state.configuration.clone();
     let result = fixture
@@ -298,6 +298,83 @@ async fn saying_to_unknown_root_does_not_post() {
     assert_eq!(
         result,
         Outcome_Saying_Data::Refused(Refusal::UnknownThread(ThreadId("$unknown".into())))
+    );
+    assert!(fixture.messenger.emission.seen.is_empty());
+}
+
+#[tokio::test]
+async fn changing_communicator_changes_room_destination_but_keeps_thread_owner() {
+    let mut fixture = Fixture::default();
+    fixture
+        .messenger
+        .open(Operation_Opening_Data {
+            address: fixture.opener.clone(),
+            subject: Subject("Existing subject".into()),
+            content: Content::Text(Text("root".into())),
+        })
+        .await;
+    let communicator = Address {
+        aspect: Aspect::Psyche,
+        topic: Topic("core".into()),
+        model: Model::Opus,
+    };
+    assert_eq!(
+        fixture
+            .messenger
+            .configure(Setting::Communicator(communicator.clone())),
+        Configuring_Data::Configured
+    );
+    fixture.messenger.emission.seen.clear();
+    for thread_id_option in [None, Some(ThreadId("$root".into()))] {
+        assert_eq!(
+            fixture
+                .messenger
+                .hear(Operation_Hearing_Data {
+                    thread_id_option,
+                    content: Content::Text(Text("words".into())),
+                })
+                .await,
+            Outcome_Hearing_Data::Delivered
+        );
+    }
+    let room = fixture
+        .messenger
+        .memory
+        .state
+        .configuration
+        .room_id_option
+        .clone()
+        .unwrap();
+    assert_eq!(
+        fixture.messenger.emission.seen,
+        vec![
+            Emission::Deliver(Deliver_Data {
+                address: communicator,
+                subject: Subject(room.0),
+                text: Text("words".into()),
+            }),
+            Emission::Deliver(Deliver_Data {
+                address: fixture.opener,
+                subject: Subject("Existing subject".into()),
+                text: Text("words".into()),
+            }),
+        ]
+    );
+}
+
+#[tokio::test]
+async fn room_message_requires_a_configured_communicator() {
+    let mut fixture = Fixture::default();
+    fixture.messenger.memory.state.configuration.address_option = None;
+    assert_eq!(
+        fixture
+            .messenger
+            .hear(Operation_Hearing_Data {
+                thread_id_option: None,
+                content: Content::Text(Text("words".into())),
+            })
+            .await,
+        Outcome_Hearing_Data::Refused(Refusal::Unconfigured)
     );
     assert!(fixture.messenger.emission.seen.is_empty());
 }

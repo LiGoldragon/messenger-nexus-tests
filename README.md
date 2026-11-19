@@ -15,7 +15,7 @@ The live integration acceptance contract is:
 3. Say posts an encrypted reply with an `m.thread` relation to that root.
 4. A decrypted reply from the configured living-fixture user reaches the
    owner as Living, preserving the subject and the complete text.
-5. A decrypted room-level message reaches the configured speaker.
+5. A decrypted room-level message reaches the configured Communicator.
 6. Other-room, other-sender, echo and duplicate event identities are ignored
    by the translator before Heard is formed.
 7. After restart, the same device/SQLite crypto store can decrypt and reply;
