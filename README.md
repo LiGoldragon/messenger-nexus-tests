@@ -4,9 +4,9 @@ This repository owns the Messenger research prototype's tests, separately
 from its implementation. `tests/operations.rs` specifies pure operation
 behavior using recording Emission and Memory implementations.
 
-The test source has been parsed/formatted but not compiled or run. A
-manifest and pinned dependency follow publication of the core checkpoint;
-no local path dependency or unpublished git pin is used as gate evidence.
+The test source has been parsed/formatted but not compiled or run. The
+manifest pins the published core checkpoint; lock and Nix generation and the
+immutable core gate remain pending. No local path dependency is gate evidence.
 
 The live integration acceptance contract is:
 

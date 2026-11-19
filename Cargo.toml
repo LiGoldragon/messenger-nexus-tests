@@ -1,0 +1,16 @@
+[package]
+name = "messenger-nexus-tests"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/LiGoldragon/messenger-nexus-tests"
+publish = false
+
+[dependencies]
+messenger-core = { git = "https://github.com/LiGoldragon/messenger-nexus", rev = "f0be766da8758eb1b4e2267ac9709dfe694f2690", default-features = false }
+flow = { package = "flow-ethos", git = "https://github.com/LiGoldragon/flow", rev = "5c61d66648a17a218147f3ec11dd995847c8303d", default-features = false }
+tokio = { version = "1.53.1", features = ["macros", "rt", "io-util"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+unused = { level = "warn", priority = -1 }
